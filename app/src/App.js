@@ -18,6 +18,7 @@ import Register from './component/pages/Register';
 import Home from './component/pages/home';
 import NotFound from './component/pages/notfound';
 import NotAuthorized from './component/pages/notauthorize';
+import NoConnection from './component/pages/notconnect';
 import Friend from './component/pages/friend';
 import Project from './component/pages/projects';
 //import uuid from 'uuid';
@@ -50,6 +51,7 @@ class App extends Component {
       <Route exact path="/about" component={About} />
       <Route exact path="/notfound" component={NotFound} />
       <Route exact path="/notauthorized" component={NotAuthorized} />
+      <Route exact path="/noconnection" component={NoConnection} />
       {/* <Route exact path="/user" component={User} /> */}
       <Route exact path="/project" component={Project} />
       <Route exact path="/bpmndiagram/:id" component={BpmnModelerComponent} />

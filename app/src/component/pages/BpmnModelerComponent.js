@@ -18,6 +18,7 @@ import canvg from 'canvg-browser';
 
 import socketIOClient from 'socket.io-client';
 
+
 const endpoint = "/bpmndiagram";
 const socket = socketIOClient(endpoint);
 
@@ -71,8 +72,6 @@ class BpmnModelerComponent extends Component {
 
     }
 
-
-
     componentWillUnmount() {
         clearInterval(this.intervalId);
     }
@@ -82,6 +81,9 @@ class BpmnModelerComponent extends Component {
     componentDidMount = () => {
         var _this = this;
         //this.intervalId = setInterval(this.timer.bind(this), 1000);
+
+
+
         this.modeler = new BpmnModeler({
             container: '#bpmnview',
             keyboard: {
@@ -130,6 +132,16 @@ class BpmnModelerComponent extends Component {
         var config = {
             headers: { 'x-access-token': localStorage.getItem('token') }
         }
+
+        this.intervalId = setInterval(function(){
+            if(navigator.onLine){
+                console.log('online')
+            }else{
+                console.log('offline')
+                window.location="/noconnection";
+                
+            }
+        },3000);
 
         //Cek Token dari user apakah valid
         Axios.get('/auth', config)
@@ -523,7 +535,9 @@ class BpmnModelerComponent extends Component {
 
 
 
+
     render = () => {
+        
         return (
             <div id="bpmncontainer">
                 <div style={chatstyle} id="propview" style={{ width: '25%', height: '93vh', float: 'right', maxHeight: '98vh', overflowX: 'auto' }}><Chat projectid={this.state.projectid} /></div>
@@ -608,7 +622,6 @@ class BpmnModelerComponent extends Component {
                 onload="this.onload=function(){};handleClientLoad()" 
                 onreadystatechange="if (this.readyState === 'complete') this.onload()">
         </script> */}
-
 
             </div>
         )
