@@ -18,6 +18,17 @@ var SCOPE = 'https://www.googleapis.com/auth/drive';
 
 class BpmnModelerDemo extends Component {
 
+    constructor() {
+        
+        super();
+
+        this.state = {
+            containerWidth:75,
+            divWidth:25,
+            statusChat:'Hide'
+        }
+    }
+
 
     modeler = null;
 
@@ -268,11 +279,40 @@ class BpmnModelerDemo extends Component {
         }
     }
 
+    hideChat = () => {
+        if(this.state.statusChat === 'Hide'){
+            this.setState({statusChat:'Show'})
+            $('#chatRoom').attr('hidden','hidden');
+            // $('#buttonHide').attr('hidden','hidden');
+            // $('#buttonShow').removeAttr('hidden');
+            this.setState({containerWidth:95})
+            this.setState({divWidth:5})
+        }
+        if(this.state.statusChat === 'Show'){
+            this.setState({statusChat:'Hide'})
+            $('#chatRoom').removeAttr('hidden');
+            // $('#buttonShow').attr('hidden','hidden');
+            // $('#buttonHide').removeAttr('hidden');
+            this.setState({containerWidth:75})
+            this.setState({divWidth:25})
+        }
+    }
+
     render = () => {
         return (
             <div id="bpmncontainer">
-            <div style={chatstyle} id="propview" style={{ width: '25%', height: '93vh', float: 'right', maxHeight: '98vh', overflowX: 'auto' }}><Chat /></div>
-            <div id="bpmnview" style={{ width: '75%', height: '90vh', float: 'left' }}></div>
+
+<div style={chatstyle} id="propview" style={{ width: this.state.divWidth+'%', height: '93vh', float: 'right', maxHeight: '98vh', overflowX: 'auto' }}>
+                    <div style={{width:'100%',display:'flex'}} >                
+                    <Button variant="outline-dark" style={buttonStyle}  id="buttonHide" onClick={this.hideChat}><i class="fa fa-eye" aria-hidden="true"></i> {this.state.statusChat}</Button>
+                    </div>
+
+                    <div id="chatRoom"><Chat /></div>
+                    
+                    </div>
+                {/* <div id="propview" style={{ width: '25%', height: '98vh', float: 'right', maxHeight: '98vh', overflowX: 'auto' }}></div> */}
+                <div id="bpmnview" style={{ width: this.state.containerWidth+'%', height: '90vh', float: 'left' }}></div>
+
 
             <canvas hidden  ref="canvasforimage" id="canvasforimage"></canvas>
 
@@ -355,6 +395,10 @@ class BpmnModelerDemo extends Component {
 
 const chatstyle = {
     overflowY: "scroll"
+}
+
+const buttonStyle = {
+    margin: '0 auto'
 }
 
 export default BpmnModelerDemo;

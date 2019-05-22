@@ -180,7 +180,7 @@ export class chatroom extends Component {
 const containerStyle = {
     width: "100%",
     // backgroundColor: "black",
-    height: "93vh",
+    height: "87vh",
     padding: "5%",
     position: "relative",
     borderStyle:"inset"
