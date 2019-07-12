@@ -257,7 +257,7 @@ export class friend extends Component {
             recipient: e
         })
             .then(res => {
-                var array = [...this.state.users]; // make a separate copy of the array
+                var array = [...this.state.users];
                 
                 if (i !== -1) {
                   array.splice(i, 1);

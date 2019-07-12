@@ -69,6 +69,32 @@ exports.socketServer = function (app, server) {
           xml:data.xml
         })
       })
+
+      socket.on("send edit",(data)=>{
+        console.log(data.user)
+        socket.broadcast.to(data.room).emit('userediting',{
+          user: data.user
+        })
+      })
+
+      socket.on("finish edit",(data)=>{
+        socket.broadcast.to(data.room).emit('finishedit',{
+          status:'finish editing'
+        })
+      })
+
+      socket.on("send edit viewer", (data) =>{
+        console.log('got data')
+        socket.broadcast.to(data.room).emit('usereditingmodeler', {
+          user:data.user
+        })
+      })
+
+      socket.on("finish edit modeler",(data)=>{
+        socket.broadcast.to(data.room).emit('finisheditmodeler',{
+          status:'finish editing'
+        })
+      })
   
       // socket.on('disconnect', function(data){
       //   console.log('Client disconnected')

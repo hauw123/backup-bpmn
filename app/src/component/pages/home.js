@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import { Button, Jumbotron, Container, Card, CardDeck, Image } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
-export class home extends Component {
+export class home extends Component {z
 
   renderCarousel(){
     return(   

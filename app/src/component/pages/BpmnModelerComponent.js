@@ -13,6 +13,7 @@ import RestrictionModules from './Restriction';
 import $ from 'jquery';
 import Moment from 'moment';
 import Tooltip from "react-simple-tooltip"
+import readOnly from './Lock';
 
 import canvg from 'canvg-browser';
 
@@ -40,7 +41,9 @@ class BpmnModelerComponent extends Component {
             statusgoogle:'true',
             containerWidth:75,
             divWidth:25,
-            statusChat:'Hide'
+            statusChat:'Hide',
+            edit:true,
+            editor:''
         }
 
         
@@ -51,6 +54,42 @@ class BpmnModelerComponent extends Component {
             })
             _this.newBpmnDiagram(_this.state.xmldata);
         });
+
+        //DISABLE LABEL
+
+        socket.on('userediting', function(data){
+            _this.setState({
+                editor:data.user + " melakukan edit"
+            })
+            _this.setState({edit:false})
+            console.log(data.user)
+        })
+
+        socket.on('finishedit', function(data){
+            _this.setState({
+                editor: '',
+                edit: true
+            })
+        })
+
+        //DISABLE MODELER
+
+        socket.on('usereditingmodeler', function(data){
+            console.log("ok")
+            _this.modeler.get('readOnly').readOnly(true);
+            _this.setState({
+                editor:data.user + " melakukan edit",
+                edit:false
+            })
+        })
+
+        socket.on("finisheditmodeler", function(data){
+            _this.modeler.get('readOnly').readOnly(false);
+            _this.setState({
+                editor: '',
+                edit: true
+            })
+        })
 
         this.console = this.console.bind(this);
 
@@ -81,9 +120,13 @@ class BpmnModelerComponent extends Component {
     modeler = null;
 
     componentDidMount = () => {
+        var priority = 10000;
         var _this = this;
+        
         //this.intervalId = setInterval(this.timer.bind(this), 1000);
 
+
+        //this.modeler = new BpmnModeler({ container: '#bpmnview', modules: [readOnly] });
 
 
         this.modeler = new BpmnModeler({
@@ -92,9 +135,13 @@ class BpmnModelerComponent extends Component {
                 bindTo: window
             },
             additionalModules: [
-                RestrictionModules
+                RestrictionModules,
+                readOnly
             ]
         });
+
+        
+        
 
         this.getxmlproject();
 
@@ -111,12 +158,103 @@ class BpmnModelerComponent extends Component {
 
         })
         )
+
+        this.modeler.get('eventBus').on('element.click', function(event) {
+            console.log(event.element.type)
+          });
+
+
+            this.modeler.get('eventBus').on('element.dblclick', priority, function(event) {
+                if(_this.state.edit === true){
+
+                //DISABLE LABEL EDIT
+                //     console.log("clicked 2");
+                //     if(event.element.type!== 'bpmn:Collaboration'){                    
+                //         _this.setState({edit:false,editor:localStorage.name + ' melakukan edit'})
+                //     console.log(_this.state.edit);
+                //     socket.emit('send edit', {
+                //         user: localStorage.name,
+                //         room: _this.state.projectid
+                //     })
+                // }
+
+
+                //DISABLE MODELER
+                if(event.element.type!== 'bpmn:Collaboration'){                    
+                                    _this.setState({edit:false,editor:localStorage.name + ' melakukan edit'})
+                                    socket.emit('send edit viewer', {
+                                        user: localStorage.name,
+                                        room: _this.state.projectid
+                                    })
+                }
+
+                }
+                else{
+                    //_this.modeler.get('readOnly').readOnly(false);
+                    // return false;
+                }
+            });
+
+            this.modeler.get('eventBus').on('drag.start', priority, function(event) {
+                socket.emit('send edit viewer', {
+                    user: localStorage.name,
+                    room: _this.state.projectid
+                })
+                console.log("drag start")
+                console.log(event)
+            })
+
+            this.modeler.get('eventBus').on('drag.end', priority, function(event) {
+                console.log("drag end")
+                console.log(event)
+                socket.emit('finish edit modeler', {
+                    room: _this.state.projectid
+                })
+            })
+
+        // this.modeler.get('eventBus').on('element.mouseup', function(event) {
+        //     console.log("clicked release")
+        //   });
+
+        //   this.modeler.get('eventBus').on('element.mousedown', function(event) {
+        //     console.log("clicked hold")
+        //   });
+
+           
+
+
  
         this.modeler.get('eventBus').on('shape.changed', 999999, function(event) {
+
+            //DISABLE MODELER
+            socket.emit('finish edit modeler', {
+                room: _this.state.projectid
+            })
+
+            //DISABLE LABEL
+
+            // socket.emit('finish edit', {
+            //     room: _this.state.projectid
+            // })
+            
               console.log(event);
+              _this.setState({edit:true,editor:''})
             });
 
             _this.handleClientLoad();
+    }
+
+    changeToViewer = () =>{
+        console.log("ok")
+        this.modeler.get('readOnly').readOnly(true);
+        
+    }
+
+    changeToModeler = () =>{
+        console.log("ok")
+        this.modeler.get('readOnly').readOnly(false);
+        this.setState({edit:true,editor:''})
+        
     }
 
     componentWillMount() {
@@ -137,9 +275,9 @@ class BpmnModelerComponent extends Component {
 
         this.intervalId = setInterval(function(){
             if(navigator.onLine){
-                console.log('online')
+                //console.log('online')
             }else{
-                console.log('offline')
+                //console.log('offline')
                 window.location="/noconnection";
                 
             }
@@ -555,6 +693,8 @@ class BpmnModelerComponent extends Component {
     }
 
 
+
+
     render = () => {
         
         return (
@@ -562,7 +702,7 @@ class BpmnModelerComponent extends Component {
                 
                 <div style={chatstyle} id="propview" style={{ width: this.state.divWidth+'%', height: '93vh', float: 'right', maxHeight: '98vh', overflowX: 'auto' }}>
                     <div style={{width:'100%',display:'flex'}} >                
-                    <Button variant="outline-dark" style={buttonStyle}  id="buttonHide" onClick={this.hideChat}><i class="fa fa-eye" aria-hidden="true"></i> {this.state.statusChat}</Button>
+                    <Button variant="outline-dark" style={buttonStyle}  id="buttonHide" onClick={this.hideChat}><i className="fa fa-eye" aria-hidden="true"></i> {this.state.statusChat}</Button>
                     </div>
 
                     <div id="chatRoom"><Chat projectid={this.state.projectid} /></div>
@@ -626,23 +766,26 @@ class BpmnModelerComponent extends Component {
                  </Tooltip>&nbsp;
 
 
-        <Tooltip background="white" color="black" radius={50} content="Login untuk upload">    
-        <Button variant="outline-dark" id="sign-in-or-out-button">Sign In/Authorize Google</Button></Tooltip>&nbsp;
-        
-        <Tooltip background="white" color="black" radius={50} content="Hapus akses website untuk upload">   
-        <Button variant="outline-dark" id="revoke-access-button"><i className="fa fa-google"></i> Revoke access</Button></Tooltip>
-        
-        <Tooltip background="white" color="black" radius={50} content="Upload diagram">   
-        <Button
-                    id="UploadDrive"
-                    hidden
-                    onClick={() => this.UploadFiles()}
-                    variant="outline-dark"
-                    type="submit">
-                    <i className="fa fa-google"></i> Upload Diagram to Drive
-        </Button></Tooltip>&nbsp;
+                <Tooltip background="white" color="black" radius={50} content="Login untuk upload">    
+                <Button variant="outline-dark" id="sign-in-or-out-button">Sign In/Authorize Google</Button></Tooltip>&nbsp;
+                
+                <Tooltip background="white" color="black" radius={50} content="Hapus akses website untuk upload">   
+                <Button variant="outline-dark" id="revoke-access-button"><i className="fa fa-google"></i> Revoke access</Button></Tooltip>
+                
+                <Tooltip background="white" color="black" radius={50} content="Upload diagram">   
+                <Button
+                            id="UploadDrive"
+                            hidden
+                            onClick={() => this.UploadFiles()}
+                            variant="outline-dark"
+                            type="submit">
+                            <i className="fa fa-google"></i> Upload Diagram to Drive
+                </Button></Tooltip>&nbsp;
 
-        <div id="auth-status"></div>
+        {/* <div id="auth-status"></div> */}
+        <div style={{display:'inline'}}>{this.state.editor}</div>&nbsp;&nbsp;
+        <Button variant="outline-dark" onClick={() => this.changeToViewer()}>Testing</Button>&nbsp;
+        <Button variant="outline-dark" onClick={() => this.changeToModeler()}>Modeler</Button>
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
         {/* <script async defer src="https://apis.google.com/js/api.js" 
